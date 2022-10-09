@@ -50,6 +50,9 @@ bool getElement(tempNode const &temp, int const &index, elementType &element);  
 bool locateElement(tempNode const &temp, int &index, elementType const &element);       //Locating the element which appointed by user.
 bool splitLinkList(tempNode const &temp, tempNode &tempL, tempNode &tempR);             //Split the 1 list into 2 list, list L is ordered, list R is counter ordered.
 void showMenu(int &index);              //Show all the functions' the system.
+bool reverseList(tempNode const &temp);
+bool deleteMaximumNode(tempNode const &temp);
+bool sortList(tempNode const &temp);
 
 void showMenu(int &index){              //Call by reference, output type parameter.
     cout << "===================================================== \n";
@@ -65,7 +68,10 @@ void showMenu(int &index){              //Call by reference, output type paramet
     cout << " \t8.Delete the element \n";
     cout << " \t9.Insert the element\n";
     cout << " \t10.Split to two list\n";
-    cout << " \t(Enter any number to quit the system) \n";
+    cout << " \t11.Reverse the list\n";
+    cout << " \t12.Delete the maximum element\n";
+    cout << " \t13.Sort the list\n";
+    cout << " \t(Enter 0 to quit the system) \n";
     cout << "===================================================== \n";
     cout << "===================================================== \n";
     cin >> index;                       //Get the input from the keyboard, then streaming into the index.
@@ -78,7 +84,7 @@ void testLinkList(){
     elementType element;                //Get the insert element or the element which was deleted.
     elementType * pArray;               //The pointer for dynamic array.
 
-    while (index <= 10 && index >= 1){  //If the index over than 10 or less than 1, quit the loop.
+    while (index <= 13 && index >= 1){  //If the index over than 10 or less than 1, quit the loop.
         showMenu(index);             //Call the function shouMenu, print all the functions, then waiting for user to select.
         switch (index) {
             case 1:                     //Start and create a list
@@ -139,12 +145,26 @@ void testLinkList(){
                 cout << "The L2: ";
                 cout << tempR;
                 break;
+            case 11:
+                reverseList(temp);
+                cout << "The reverse list is: " << endl;
+                cout << temp;
+                break;
+            case 12:
+                deleteMaximumNode(temp);
+                cout << temp;
+                break;
+            case 13:
+                sortList(temp);
+                cout << temp;
+                break;
             default:
                 cout << "Quiting....." << endl;
                 break;
         }
     }
     destroyLinkList(temp);          //Destroy the linked list.
+    destroyLinkList(tempR);
 }
 
 bool getInformation(elementType * &pArray, int &size){
@@ -178,26 +198,26 @@ bool createLinkList(tempNode const &temp, elementType const array[], int const &
         return false;
     }
     else{
-        for (int i = size - 1; i >= 0; i--) {       //
-            auto newNode = new Node;                //
-            newNode->Next = temp->Next;             //
-            newNode->Data = array[i];               //
-            temp->Next = newNode;
-            temp->Data++;
+        for (int i = size - 1; i >= 0; i--) {       //Output the array in reverse order.
+            auto newNode = new Node;                //create new Node.
+            newNode->Next = temp->Next;             //Head insert.
+            newNode->Data = array[i];               //Copy data into the node.
+            temp->Next = newNode;                   //Head insert.
+            temp->Data++;                           //The length of the linked list +1.
         }
         return true;
     }
 }
 
 void destroyLinkList(tempNode &temp){
-    tempNode previous(temp), current(temp->Next);
-    while (current != nullptr){
-        delete previous;
-        previous = current;
+    tempNode previous(temp), current(temp->Next);   //A pair of pointer.
+    while (current != nullptr){                     //When the current is pointing to the null, break the loop.
+        delete previous;                            //Delete the previous node.
+        previous = current;                         //Move to the next one.
         current = current->Next;
     }
-    delete previous;
-    temp = nullptr;
+    delete previous;         //Because when the loop break out, the end of the node doesn't delete yet,
+    temp = nullptr;          //so we need to delete the end of the node, which is pointed by previous.
 }
 
 bool insertHead(tempNode const &temp, elementType const &data){
@@ -206,26 +226,26 @@ bool insertHead(tempNode const &temp, elementType const &data){
         return false;
     }
     auto newNode = new Node;
-    newNode->Next = temp->Next;
-    newNode->Data = data;
-    temp->Next = newNode;
-    temp->Data++;
+    newNode->Next = temp->Next;     //Linking the new node in front of the 1st node.
+    newNode->Data = data;           //Input the data.
+    temp->Next = newNode;           //Linking the new node after the head node.
+    temp->Data++;                   //The length of the linked list +1.
     return true;
 }
 
 bool insertTail(tempNode const &temp, elementType const &data){
-    auto temp1 = temp;
+    auto temp1 = temp;   //The variable for loop, locating the linked list's tail.
     if (temp == nullptr){
         cout << "The linked list isn't exits. " << endl;
         return false;
     }
     while (temp1->Next != nullptr){
-        temp1 = temp1->Next;
+        temp1 = temp1->Next;        //Find the linked list's tail.
     }
     auto newNode = new Node;
-    newNode->Next = nullptr;
+    newNode->Next = nullptr;        //Initial the new node.
     newNode->Data = data;
-    temp1->Next = newNode;
+    temp1->Next = newNode;         //Insert at the end of the list.
     return true;
 }
 
@@ -234,20 +254,20 @@ bool insertNode(tempNode const &temp, int const &index, elementType const &data)
         cout << "The linked list isn't exits. " << endl;
         return false;
     }
-    else if (temp->Data < index){
+    else if (temp->Data < index){       //Determinate whether the position is valid.
         cout << "The delete position invalid." << endl;
         return false;
     }
-    tempNode current = temp->Next;
-    tempNode previous = temp;
-    int count(1);
-    while (current != nullptr && count < index) {
-        previous = current;
+    tempNode current = temp->Next;      //The pair of pointer, the current is for loop to find the ith node;
+    tempNode previous = temp;           //the previous is before 1 of the current, to locate the i-1th node.
+    int count(1);                       //Loop assistant variable.
+    while (current != nullptr && count < index) {  //To find the ith & i-1th node,
+        previous = current;                        //and then insure scope is in the list.
         current = current->Next;
         count++;
     }
     auto newNode = new Node;
-    newNode->Next = current;
+    newNode->Next = current;            //Insert the new node after the i-1th node, in front of the ith node.
     newNode->Data = data;
     previous->Next = newNode;
     return true;
@@ -262,11 +282,11 @@ bool deleteNode(tempNode const &temp, int const &index, elementType &element){
         cout << "The delete position invalid." << endl;
         return false;
     }
-    else if (isEmpty(temp)){
+    else if (isEmpty(temp)){   //Determinate the linked list whether the empty or not, if is, we can't do anything.
         cout << "The linked list is empty." << endl;
         return false;
     }
-    tempNode current = temp->Next;
+    tempNode current = temp->Next;  //The same logic thought of insert, don't repeat.
     tempNode previous = temp;
     int count(1);
     while (current != nullptr && count < index) {
@@ -310,7 +330,7 @@ bool getElement(tempNode const &temp, int const &index, elementType &element){
     }
     tempNode current = temp->Next;
     int count(1);
-    while (current->Next != nullptr && count < index) {
+    while (current->Next != nullptr && count < index) { //Loop to reach the ith node,then return it.
         current = current->Next;
         count++;
     }
@@ -329,13 +349,30 @@ bool locateElement(tempNode const &temp, int &index, elementType const &element)
     }
     tempNode current = temp->Next;
     int count(1);
-    while (current->Next != nullptr && current->Data != element) {
-        current = current->Next;
+    while (current != nullptr && current->Data != element) {
+        current = current->Next;        //Loop for find the data in the list.
         count++;
+    }
+    if (current == nullptr){            //If the current is the nullptr, meaning the element isn't exits.
+        cout << "The element doesn't exits. " << endl;
+        return false;
     }
     index =count;
     return true;
 }
+
+/*
+ *                     The Algorithm Logic Over-view:
+ * Split into the two linked list, the list left using the original head node,
+ * but the list right using the new head node. So the 1st thing we need to traverse
+ * the original linked list, the odd nodes into the list left by positive order,
+ * the even nodes into the list right, which is inverse order.
+ * So, we think that the list left using the tail insert, the list right using
+ * head insert.
+ * In order to implement this algorithm, we need two the pair of pointer, in which
+ * we move the odd one to the list left, the even one to the right list, and also we
+ * don't disorient the next node's address.
+*/
 
 bool splitLinkList(tempNode const &temp, tempNode &tempL, tempNode &tempR){
     if (temp == nullptr){
@@ -347,32 +384,102 @@ bool splitLinkList(tempNode const &temp, tempNode &tempL, tempNode &tempR){
         return false;
     }
     tempNode current(temp->Next->Next), previous(temp->Next), tempLTail, cNext, pNext;
-    tempL = temp;
-    tempL->Data = 0;
-    tempL->Next = nullptr;
-    tempR = new Node;
-    tempLTail = tempL;
+    tempL = temp;           //Protect the original pointer, which is the const pointer.
+    tempL->Data = 0;        //Reset the list-left's head node (also reset the length of the list),
+    tempL->Next = nullptr;  //and break the henge between head to the 1st node.
+    tempR = new Node;       //Construct the new head node for list right.
+    tempLTail = tempL;      //The assistant pointer, which always pointing the end of the list left.
     while (previous != nullptr){
-        if (current == nullptr){
-            tempLTail->Next = previous;
-            tempLTail = previous;
-            tempL->Data++;
+        if (current == nullptr){        //If the original list have odd number of the nodes, we need
+            tempLTail->Next = previous; //to consider that the end of the node doesn't go to the list
+            tempLTail = previous;       //left yet, so we need do that.
+            tempL->Data++;              //Linked list's length +1.
             break;
         }
-        else {
-            cNext = current->Next->Next;
-            pNext = current->Next;
+        else if (current->Next != nullptr && current->Next->Next != nullptr){
+            cNext = current->Next->Next;    //The pair of pointer to store the information of the original
+            pNext = current->Next;          //list, to insure the address will not lose.
         }
-        tempLTail->Next = previous;
+        tempLTail->Next = previous;         //List left for tail insert.
         tempLTail = previous;
         tempL->Data++;
-        current->Next = tempR->Next;
+        current->Next = tempR->Next;        //List right for head insert.
         tempR->Next = current;
         tempR->Data++;
+        if (current == cNext && previous == pNext)
+            break;
         current = cNext;
         previous = pNext;
     }
     tempLTail->Next = nullptr;
+    return true;
+}
+
+bool reverseList(tempNode const &temp){
+    if (temp == nullptr){
+        cout << "The linked list isn't exits. " << endl;
+        return false;
+    }
+    else if (isEmpty(temp)){
+        cout << "The linked list is empty." << endl;
+        return false;
+    }
+    tempNode current = temp->Next;
+    tempNode next;
+    temp->Next = nullptr;
+    while (current != nullptr){
+        next = current->Next;
+        current->Next = temp->Next;
+        temp->Next = current;
+        current = next;
+    }
+    return true;
+}
+
+bool deleteMaximumNode(tempNode const &temp){
+    if (temp == nullptr){
+        cout << "The linked list isn't exits. " << endl;
+        return false;
+    }
+    else if (isEmpty(temp)){
+        cout << "The linked list is empty." << endl;
+        return false;
+    }
+    tempNode maximum(temp->Next), current(temp->Next), previous(temp), maximumP(temp->Next);
+    while (current != nullptr){
+        if (maximum->Data < current->Data){
+            maximum = current;
+            maximumP = previous;
+        }
+        previous = previous->Next;
+        current = current->Next;
+    }
+    maximumP->Next = maximum->Next;
+    delete maximum;
+    return true;
+}
+
+bool sortList(tempNode const &temp){
+    if (temp == nullptr){
+        cout << "The linked list isn't exits. " << endl;
+        return false;
+    }
+    else if (isEmpty(temp)){
+        cout << "The linked list is empty." << endl;
+        return false;
+    }
+    tempNode oldP, newP(temp->Next->Next), newS;
+    temp->Next->Next = nullptr;
+    while (newP != nullptr) {
+        newS = newP->Next;
+        oldP = temp;
+        while (oldP->Next != nullptr && oldP->Next->Data < newP->Data) {
+            oldP = oldP->Next;
+        }
+        newP->Next = oldP->Next;
+        oldP->Next = newP;
+        newP = newS;
+    }
     return true;
 }
 
